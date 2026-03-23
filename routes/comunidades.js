@@ -64,7 +64,7 @@ router.get('/usuarios/:id', requireAuth, async (req, res) => {
     const u = usuarios[0];
     res.json({
       id: u.id,
-      nombre: u.firstname,
+      nombre: u.firstname || '',
       apellido: u.lastname || '',
       email: u.username,
       telefono: u.phone || '',
