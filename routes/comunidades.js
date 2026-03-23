@@ -89,7 +89,7 @@ router.patch('/usuarios/:id', requireAuth, async (req, res) => {
   if (!campos.length) return res.status(400).json({ error: 'No hay campos para actualizar' });
   valores.push(id);
   try {
-    await query(`UPDATE users SET ${campos.join(', ')} WHERE id = ?`, valores);
+    await query(`UPDATE users SET ${campos.join(', ')} WHERE id = ? AND deleted_at IS NULL`, valores);
     log(req.user.email, 'EDITAR_USUARIO', 'comunidades', `usuario_id=${id}`);
     res.json({ ok: true });
   } catch (err) {
