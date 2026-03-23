@@ -234,7 +234,7 @@
            </button>`
         : '';
 
-      // Comunidades/Espacios
+      // Espacios (solo Nexo)
       const relacionesHtml = currentTab === 'nexo'
         ? renderRelaciones('Espacios', u.espacios || [], (e) =>
             `<div class="flex items-center justify-between py-1">
@@ -242,12 +242,7 @@
                <button onclick="confirmAction('eliminar_espacio','${u.id}','${e.id}','${escHtml(e.nombre)}')"
                  class="text-xs text-red-500 hover:text-red-700 font-medium transition">Eliminar</button>
              </div>`)
-        : renderRelaciones('Comunidades', u.comunidades || [], (c) =>
-            `<div class="flex items-center justify-between py-1">
-               <span class="text-sm text-gray-700">${escHtml(c.nombre)}</span>
-               <button onclick="confirmAction('eliminar_comunidad','${u.id}','${c.id}','${escHtml(c.nombre)}')"
-                 class="text-xs text-red-500 hover:text-red-700 font-medium transition">Eliminar</button>
-             </div>`);
+        : '';
 
       const eventosHtml = renderRelaciones('Eventos', u.eventos || [], (e) =>
         `<div class="flex items-center justify-between py-1">
@@ -280,9 +275,8 @@
     // ── Modal confirmación ─────────────────────────────────────────
     function confirmAction(accion, usuarioId, relacionId, nombre) {
       const textos = {
-        eliminar_espacio:    `¿Eliminar a ${nombreUsuario()} del espacio <strong>${nombre}</strong>?`,
-        eliminar_evento:     `¿Eliminar a ${nombreUsuario()} del evento <strong>${nombre}</strong>?`,
-        eliminar_comunidad:  `¿Eliminar a ${nombreUsuario()} de la comunidad <strong>${nombre}</strong>?`,
+        eliminar_espacio: `¿Eliminar a ${nombreUsuario()} del espacio <strong>${nombre}</strong>?`,
+        eliminar_evento:  `¿Eliminar a ${nombreUsuario()} del evento <strong>${nombre}</strong>?`,
       };
       pendingAction = { accion, usuarioId, relacionId };
       document.getElementById('modal-confirm-text').innerHTML = textos[accion] || `¿Confirmar acción?`;
@@ -298,9 +292,8 @@
       closeModal('modal-confirm');
 
       let url, method = 'DELETE';
-      if (accion === 'eliminar_espacio')   url = `/api/nexo/usuarios/${usuarioId}/espacio/${relacionId}`;
-      if (accion === 'eliminar_evento')    url = `/api/${currentTab}/usuarios/${usuarioId}/evento/${relacionId}`;
-      if (accion === 'eliminar_comunidad') url = `/api/comunidades/usuarios/${usuarioId}/comunidad/${relacionId}`;
+      if (accion === 'eliminar_espacio') url = `/api/nexo/usuarios/${usuarioId}/espacio/${relacionId}`;
+      if (accion === 'eliminar_evento')  url = `/api/${currentTab}/usuarios/${usuarioId}/evento/${relacionId}`;
 
       try {
         const res = await fetch(url, { method });
