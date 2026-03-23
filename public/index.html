@@ -239,7 +239,7 @@
         ? renderRelaciones('Espacios', u.espacios || [], (e) =>
             `<div class="flex items-center justify-between py-1">
                <span class="text-sm text-gray-700">${escHtml(e.nombre)}</span>
-               <button onclick="confirmAction('eliminar_espacio','${u.id}','${e.id}','${escHtml(e.nombre)}')"
+               <button onclick="confirmAction(${jsStr('eliminar_espacio')},${jsStr(u.id)},${jsStr(e.id)},${jsStr(e.nombre)})"
                  class="text-xs text-red-500 hover:text-red-700 font-medium transition">Eliminar</button>
              </div>`)
         : '';
@@ -247,7 +247,7 @@
       const eventosHtml = renderRelaciones('Eventos', u.eventos || [], (e) =>
         `<div class="flex items-center justify-between py-1">
            <span class="text-sm text-gray-700">${escHtml(e.nombre)}</span>
-           <button onclick="confirmAction('eliminar_evento','${u.id}','${e.id}','${escHtml(e.nombre)}')"
+           <button onclick="confirmAction(${jsStr('eliminar_evento')},${jsStr(u.id)},${jsStr(e.id)},${jsStr(e.nombre)})"
              class="text-xs text-red-500 hover:text-red-700 font-medium transition">Eliminar</button>
          </div>`);
 
@@ -353,6 +353,11 @@
 
     function clearError() {
       document.getElementById('error-banner').classList.add('hidden');
+    }
+
+    // Serializa un valor como string JS seguro para usar en atributos onclick
+    function jsStr(val) {
+      return JSON.stringify(String(val == null ? '' : val));
     }
 
     function escHtml(str) {
