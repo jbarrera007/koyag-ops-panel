@@ -28,7 +28,7 @@ router.get('/buscar', requireAuth, async (req, res) => {
     );
     res.json(rows.map((u) => ({
       id: u.id,
-      nombre: `${u.firstname} ${u.lastname || ''}`.trim(),
+      nombre: `${u.firstname || ''} ${u.lastname || ''}`.trim(),
       email: u.username,
     })));
   } catch (err) {
