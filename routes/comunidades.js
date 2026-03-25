@@ -57,6 +57,42 @@ router.get('/eventos/:id/inscriptos', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/comunidades/personas?page=1&q=texto
+router.get('/personas', requireAuth, async (req, res) => {
+  const page   = Math.max(1, parseInt(req.query.page) || 1);
+  const q      = (req.query.q || '').trim();
+  const offset = (page - 1) * 10;
+  try {
+    const like = `%${q}%`;
+    const rows = await query(
+      `SELECT u.id, u.firstname, u.lastname, u.username AS email,
+              o.name AS empresa, o.nit, o.business_profile
+       FROM users u
+       LEFT JOIN organizations o ON o.id = u.organization_id
+       WHERE u.deleted_at IS NULL
+         ${q ? 'AND (u.firstname LIKE ? OR u.lastname LIKE ? OR u.username LIKE ? OR o.name LIKE ?)' : ''}
+       ORDER BY u.lastname, u.firstname
+       LIMIT 10 OFFSET ?`,
+      q ? [like, like, like, like, offset] : [offset]
+    );
+    res.json({
+      data: rows.map((r) => ({
+        id:                 r.id,
+        nombre:             r.firstname        || '',
+        apellido:           r.lastname         || '',
+        email:              r.email            || '',
+        empresa:            r.empresa          || '',
+        nit:                r.nit              || '',
+        perfilEmpresarial:  r.business_profile || '',
+      })),
+      hasMore: rows.length === 10,
+    });
+  } catch (err) {
+    console.error('[Comunidades] personas:', err.message);
+    res.status(503).json({ error: 'No se puede conectar a Comunidades en este momento' });
+  }
+});
+
 // GET /api/comunidades/buscar?q=texto
 // Busca por firstname, lastname o username (email)
 router.get('/buscar', requireAuth, async (req, res) => {
