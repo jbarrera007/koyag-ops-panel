@@ -16,10 +16,10 @@ function log(userEmail, accion, plataforma, extras) {
 router.get('/eventos', requireAuth, async (req, res) => {
   try {
     const rows = await query(
-      'SELECT id, name, start_date FROM events WHERE deleted_at IS NULL ORDER BY name',
+      'SELECT id, name, start_at FROM events WHERE deleted_at IS NULL ORDER BY name',
       []
     );
-    res.json(rows.map((e) => ({ id: e.id, nombre: e.name, fechaInicio: e.start_date ?? null })));
+    res.json(rows.map((e) => ({ id: e.id, nombre: e.name, fechaInicio: e.start_at ?? null })));
   } catch (err) {
     console.error('[Comunidades] eventos:', err.message);
     res.status(503).json({ error: 'No se puede conectar a Comunidades en este momento' });
