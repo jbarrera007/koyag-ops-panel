@@ -12,19 +12,70 @@ function log(userEmail, accion, plataforma, extras) {
   fs.appendFile(LOG_PATH, linea, () => {});
 }
 
+// GET /api/comunidades/eventos
+router.get('/eventos', requireAuth, async (req, res) => {
+  try {
+    const rows = await query(
+      'SELECT id, name, start_date FROM events WHERE deleted_at IS NULL ORDER BY name',
+      []
+    );
+    res.json(rows.map((e) => ({ id: e.id, nombre: e.name, fechaInicio: e.start_date ?? null })));
+  } catch (err) {
+    console.error('[Comunidades] eventos:', err.message);
+    res.status(503).json({ error: 'No se puede conectar a Comunidades en este momento' });
+  }
+});
+
+// GET /api/comunidades/eventos/:id/inscriptos
+router.get('/eventos/:id/inscriptos', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const rows = await query(
+      `SELECT sr.id AS inscripcion_id, u.id AS user_id,
+              u.firstname, u.lastname, u.username AS email, u.phone
+       FROM signup_registereds sr
+       JOIN signups s ON s.id = sr.signup_id
+       JOIN users u   ON u.id = sr.user_id
+       WHERE s.event_id = ?
+         AND sr.deleted_at IS NULL
+         AND s.deleted_at IS NULL
+         AND u.deleted_at IS NULL
+       ORDER BY u.lastname, u.firstname`,
+      [id]
+    );
+    res.json(rows.map((r) => ({
+      inscripcionId: r.inscripcion_id,
+      userId:        r.user_id,
+      nombre:        r.firstname || '',
+      apellido:      r.lastname  || '',
+      email:         r.email,
+      telefono:      r.phone     || '',
+    })));
+  } catch (err) {
+    console.error('[Comunidades] inscriptos:', err.message);
+    res.status(503).json({ error: 'No se puede conectar a Comunidades en este momento' });
+  }
+});
+
 // GET /api/comunidades/buscar?q=texto
+// Busca por firstname, lastname o username (email)
 router.get('/buscar', requireAuth, async (req, res) => {
   const { q } = req.query;
   if (!q) return res.status(400).json({ error: 'Parámetro q requerido' });
   try {
     const rows = await query(
-      `SELECT id, nombre, apellido, email, telefono
-       FROM usuarios
-       WHERE nombre LIKE ? OR apellido LIKE ? OR email LIKE ?
+      `SELECT id, firstname, lastname, username, phone
+       FROM users
+       WHERE (firstname LIKE ? OR lastname LIKE ? OR username LIKE ?)
+         AND deleted_at IS NULL
        LIMIT 10`,
       [`%${q}%`, `%${q}%`, `%${q}%`]
     );
-    res.json(rows);
+    res.json(rows.map((u) => ({
+      id: u.id,
+      nombre: `${u.firstname || ''} ${u.lastname || ''}`.trim(),
+      email: u.username,
+    })));
   } catch (err) {
     console.error('[Comunidades] buscar:', err.message);
     res.status(503).json({ error: 'No se puede conectar a Comunidades en este momento' });
@@ -35,28 +86,35 @@ router.get('/buscar', requireAuth, async (req, res) => {
 router.get('/usuarios/:id', requireAuth, async (req, res) => {
   const { id } = req.params;
   try {
-    const [usuarios] = await Promise.all([
-      query('SELECT id, nombre, apellido, email, telefono FROM usuarios WHERE id = ?', [id]),
-    ]);
+    const usuarios = await query(
+      'SELECT id, firstname, lastname, username, phone FROM users WHERE id = ? AND deleted_at IS NULL',
+      [id]
+    );
     if (!usuarios.length) return res.status(404).json({ error: 'Usuario no encontrado' });
 
-    const comunidades = await query(
-      `SELECT c.id, c.nombre
-       FROM comunidades c
-       JOIN usuario_comunidad uc ON uc.comunidad_id = c.id
-       WHERE uc.usuario_id = ?`,
-      [id]
-    );
-
+    // Eventos: events -> signups -> signup_registereds
+    // Retornamos signup_registereds.id como id de la inscripción (es lo que se elimina)
     const eventos = await query(
-      `SELECT e.id, e.nombre
-       FROM eventos e
-       JOIN usuario_evento ue ON ue.evento_id = e.id
-       WHERE ue.usuario_id = ?`,
+      `SELECT sr.id, e.name
+       FROM signup_registereds sr
+       JOIN signups s ON s.id = sr.signup_id
+       JOIN events e ON e.id = s.event_id
+       WHERE sr.user_id = ?
+         AND sr.deleted_at IS NULL
+         AND s.deleted_at IS NULL
+         AND e.deleted_at IS NULL`,
       [id]
     );
 
-    res.json({ ...usuarios[0], comunidades, eventos });
+    const u = usuarios[0];
+    res.json({
+      id: u.id,
+      nombre: u.firstname || '',
+      apellido: u.lastname || '',
+      email: u.username,
+      telefono: u.phone || '',
+      eventos: eventos.map((e) => ({ id: e.id, nombre: e.name })),
+    });
   } catch (err) {
     console.error('[Comunidades] usuario/:id:', err.message);
     res.status(503).json({ error: 'No se puede conectar a Comunidades en este momento' });
@@ -69,14 +127,14 @@ router.patch('/usuarios/:id', requireAuth, async (req, res) => {
   const { nombre, apellido, email, telefono } = req.body;
   const campos = [];
   const valores = [];
-  if (nombre !== undefined) { campos.push('nombre = ?'); valores.push(nombre); }
-  if (apellido !== undefined) { campos.push('apellido = ?'); valores.push(apellido); }
-  if (email !== undefined) { campos.push('email = ?'); valores.push(email); }
-  if (telefono !== undefined) { campos.push('telefono = ?'); valores.push(telefono); }
+  if (nombre !== undefined)   { campos.push('firstname = ?'); valores.push(nombre); }
+  if (apellido !== undefined) { campos.push('lastname = ?');  valores.push(apellido); }
+  if (email !== undefined)    { campos.push('username = ?');  valores.push(email); }
+  if (telefono !== undefined) { campos.push('phone = ?');     valores.push(telefono); }
   if (!campos.length) return res.status(400).json({ error: 'No hay campos para actualizar' });
   valores.push(id);
   try {
-    await query(`UPDATE usuarios SET ${campos.join(', ')} WHERE id = ?`, valores);
+    await query(`UPDATE users SET ${campos.join(', ')} WHERE id = ? AND deleted_at IS NULL`, valores);
     log(req.user.email, 'EDITAR_USUARIO', 'comunidades', `usuario_id=${id}`);
     res.json({ ok: true });
   } catch (err) {
@@ -85,31 +143,16 @@ router.patch('/usuarios/:id', requireAuth, async (req, res) => {
   }
 });
 
-// DELETE /api/comunidades/usuarios/:id/comunidad/:comunidadId
-router.delete('/usuarios/:id/comunidad/:comunidadId', requireAuth, async (req, res) => {
-  const { id, comunidadId } = req.params;
+// DELETE /api/comunidades/usuarios/:id/evento/:signupRegisteredId
+// Soft delete sobre signup_registereds
+router.delete('/usuarios/:id/evento/:signupRegisteredId', requireAuth, async (req, res) => {
+  const { id, signupRegisteredId } = req.params;
   try {
     await query(
-      'DELETE FROM usuario_comunidad WHERE usuario_id = ? AND comunidad_id = ?',
-      [id, comunidadId]
+      'UPDATE signup_registereds SET deleted_at = NOW() WHERE id = ? AND user_id = ? AND deleted_at IS NULL',
+      [signupRegisteredId, id]
     );
-    log(req.user.email, 'ELIMINAR_COMUNIDAD', 'comunidades', `usuario_id=${id} | comunidad_id=${comunidadId}`);
-    res.json({ ok: true });
-  } catch (err) {
-    console.error('[Comunidades] delete comunidad:', err.message);
-    res.status(503).json({ error: 'No se puede conectar a Comunidades en este momento' });
-  }
-});
-
-// DELETE /api/comunidades/usuarios/:id/evento/:eventoId
-router.delete('/usuarios/:id/evento/:eventoId', requireAuth, async (req, res) => {
-  const { id, eventoId } = req.params;
-  try {
-    await query(
-      'DELETE FROM usuario_evento WHERE usuario_id = ? AND evento_id = ?',
-      [id, eventoId]
-    );
-    log(req.user.email, 'ELIMINAR_EVENTO', 'comunidades', `usuario_id=${id} | evento_id=${eventoId}`);
+    log(req.user.email, 'ELIMINAR_EVENTO', 'comunidades', `usuario_id=${id} | signup_registered_id=${signupRegisteredId}`);
     res.json({ ok: true });
   } catch (err) {
     console.error('[Comunidades] delete evento:', err.message);
