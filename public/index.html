@@ -367,7 +367,7 @@
       const slice = filteredEventos.slice((eventoPage - 1) * PAGE_SIZE, eventoPage * PAGE_SIZE);
 
       tbody.innerHTML = slice.map((e) => `
-        <tr onclick="selectEvento(${e.id}, ${jsStr(e.nombre)})"
+        <tr onclick="selectEvento(${jsStr(e.id)}, ${jsStr(e.nombre)})"
           class="cursor-pointer border-b border-gray-100 last:border-0 hover:bg-indigo-50 transition">
           <td class="px-4 py-3 font-medium text-gray-800">${escHtml(e.nombre)}</td>
           <td class="px-4 py-3 text-gray-500">${fmtFecha(e.fechaInicio)}</td>
