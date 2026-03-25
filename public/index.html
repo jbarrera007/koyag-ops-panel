@@ -630,7 +630,7 @@
     }
 
     function jsStr(val) {
-      return JSON.stringify(String(val == null ? '' : val));
+      return JSON.stringify(String(val == null ? '' : val)).replace(/"/g, '&quot;');
     }
 
     function escHtml(str) {
