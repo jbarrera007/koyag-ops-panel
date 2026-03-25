@@ -12,6 +12,51 @@ function log(userEmail, accion, plataforma, extras) {
   fs.appendFile(LOG_PATH, linea, () => {});
 }
 
+// GET /api/comunidades/eventos
+router.get('/eventos', requireAuth, async (req, res) => {
+  try {
+    const rows = await query(
+      'SELECT id, name, start_date FROM events WHERE deleted_at IS NULL ORDER BY name',
+      []
+    );
+    res.json(rows.map((e) => ({ id: e.id, nombre: e.name, fechaInicio: e.start_date ?? null })));
+  } catch (err) {
+    console.error('[Comunidades] eventos:', err.message);
+    res.status(503).json({ error: 'No se puede conectar a Comunidades en este momento' });
+  }
+});
+
+// GET /api/comunidades/eventos/:id/inscriptos
+router.get('/eventos/:id/inscriptos', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const rows = await query(
+      `SELECT sr.id AS inscripcion_id, u.id AS user_id,
+              u.firstname, u.lastname, u.username AS email, u.phone
+       FROM signup_registereds sr
+       JOIN signups s ON s.id = sr.signup_id
+       JOIN users u   ON u.id = sr.user_id
+       WHERE s.event_id = ?
+         AND sr.deleted_at IS NULL
+         AND s.deleted_at IS NULL
+         AND u.deleted_at IS NULL
+       ORDER BY u.lastname, u.firstname`,
+      [id]
+    );
+    res.json(rows.map((r) => ({
+      inscripcionId: r.inscripcion_id,
+      userId:        r.user_id,
+      nombre:        r.firstname || '',
+      apellido:      r.lastname  || '',
+      email:         r.email,
+      telefono:      r.phone     || '',
+    })));
+  } catch (err) {
+    console.error('[Comunidades] inscriptos:', err.message);
+    res.status(503).json({ error: 'No se puede conectar a Comunidades en este momento' });
+  }
+});
+
 // GET /api/comunidades/buscar?q=texto
 // Busca por firstname, lastname o username (email)
 router.get('/buscar', requireAuth, async (req, res) => {
