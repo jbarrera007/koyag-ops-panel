@@ -1,11 +1,12 @@
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
+const MySQLStore = require('express-mysql-session')(session);
 const passport = require('passport');
 const path = require('path');
 
 const { connect: connectMongo } = require('./db/mongo');
-const { testConnection: testMySQL } = require('./db/mysql');
+const { pool, testConnection: testMySQL } = require('./db/mysql');
 const { setupAuthRoutes } = require('./auth');
 const comunidadesRouter = require('./routes/comunidades');
 const nexoRouter = require('./routes/nexo');
@@ -16,13 +17,20 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.set('trust proxy', 1);
+
+const sessionStore = new MySQLStore({}, pool);
 
 app.use(
   session({
     secret: process.env.SESSION_SECRET || 'dev-secret',
+    store: sessionStore,
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false, maxAge: 8 * 60 * 60 * 1000 }, // 8 horas
+    cookie: {
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 8 * 60 * 60 * 1000, // 8 horas
+    },
   })
 );
 
