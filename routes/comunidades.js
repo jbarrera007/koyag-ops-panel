@@ -72,8 +72,8 @@ router.get('/personas', requireAuth, async (req, res) => {
        WHERE u.deleted_at IS NULL
          ${q ? 'AND (u.firstname LIKE ? OR u.lastname LIKE ? OR u.username LIKE ? OR o.name LIKE ?)' : ''}
        ORDER BY u.lastname, u.firstname
-       LIMIT 10 OFFSET ?`,
-      q ? [like, like, like, like, offset] : [offset]
+       LIMIT 10 OFFSET ${offset}`,
+      q ? [like, like, like, like] : []
     );
     res.json({
       data: rows.map((r) => ({
