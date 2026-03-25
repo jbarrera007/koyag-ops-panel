@@ -32,10 +32,9 @@
       </div>
     </header>
 
-    <!-- Contenido -->
-    <main class="flex-1 p-6 max-w-4xl mx-auto w-full">
+    <main class="flex-1 p-6 max-w-6xl mx-auto w-full">
 
-      <!-- Selector de plataforma -->
+      <!-- Tabs de plataforma -->
       <div class="flex gap-2 mb-5">
         <button id="tab-comunidades" onclick="selectTab('comunidades')"
           class="px-5 py-2 rounded-lg font-semibold text-sm transition border border-indigo-600 bg-indigo-600 text-white">
@@ -53,15 +52,25 @@
       <!-- ── SECCIÓN COMUNIDADES ─────────────────────────────────── -->
       <div id="section-comunidades">
 
-        <!-- VISTA 1: Tabla de eventos -->
-        <div id="view-eventos">
+        <!-- Sub-nav Eventos / Personas -->
+        <div id="comunidades-subnav" class="flex gap-2 mb-4">
+          <button id="subnav-eventos" onclick="showSubview('eventos')"
+            class="px-4 py-1.5 rounded-lg text-sm font-medium transition border border-indigo-600 bg-indigo-600 text-white">
+            Eventos
+          </button>
+          <button id="subnav-personas" onclick="showSubview('personas')"
+            class="px-4 py-1.5 rounded-lg text-sm font-medium transition border border-gray-300 text-gray-600 hover:bg-gray-50">
+            Personas
+          </button>
+        </div>
 
+        <!-- VISTA: Tabla de eventos -->
+        <div id="view-eventos" class="hidden">
           <div class="mb-3">
             <input id="eventos-filter" type="text" placeholder="Buscar evento por nombre..."
               oninput="filtrarEventos()"
               class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
-
           <div class="bg-white rounded-2xl shadow overflow-hidden">
             <table class="w-full text-sm">
               <thead>
@@ -80,7 +89,6 @@
                 <tr><td colspan="2" class="px-4 py-6 text-sm text-gray-400">Cargando eventos...</td></tr>
               </tbody>
             </table>
-            <!-- Paginación eventos -->
             <div id="eventos-pagination" class="hidden flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50">
               <span id="eventos-page-info" class="text-xs text-gray-500"></span>
               <div class="flex gap-2">
@@ -95,13 +103,10 @@
               </div>
             </div>
           </div>
-
         </div>
 
-        <!-- VISTA 2: Inscriptos del evento -->
+        <!-- VISTA: Inscriptos de un evento -->
         <div id="view-inscriptos" class="hidden">
-
-          <!-- Header con volver y nombre del evento -->
           <div class="flex items-center gap-4 mb-4">
             <button onclick="volverAEventos()"
               class="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-800 font-medium transition">
@@ -110,13 +115,11 @@
             <span class="text-gray-300">|</span>
             <h2 id="inscriptos-evento-nombre" class="text-sm font-semibold text-gray-700 truncate"></h2>
           </div>
-
           <div class="mb-3">
             <input id="inscriptos-filter" type="text" placeholder="Filtrar por nombre o email..."
               oninput="filtrarInscriptos()"
               class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
-
           <div class="bg-white rounded-2xl shadow overflow-hidden">
             <table class="w-full text-sm">
               <thead>
@@ -130,7 +133,6 @@
                 <tr><td colspan="3" class="px-4 py-6 text-sm text-gray-400">Cargando inscriptos...</td></tr>
               </tbody>
             </table>
-            <!-- Paginación inscriptos -->
             <div id="inscriptos-pagination" class="hidden flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50">
               <span id="inscriptos-page-info" class="text-xs text-gray-500"></span>
               <div class="flex gap-2">
@@ -145,7 +147,46 @@
               </div>
             </div>
           </div>
+        </div>
 
+        <!-- VISTA: Tabla de personas -->
+        <div id="view-personas" class="hidden">
+          <div class="mb-3">
+            <input id="personas-search" type="text"
+              placeholder="Buscar por nombre, apellido, email o empresa..."
+              oninput="onPersonasSearch()"
+              class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div class="bg-white rounded-2xl shadow overflow-hidden">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-gray-100 bg-gray-50">
+                  <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Nombre</th>
+                  <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Apellido</th>
+                  <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Email</th>
+                  <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Empresa</th>
+                  <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">NIT</th>
+                  <th class="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Perfil</th>
+                </tr>
+              </thead>
+              <tbody id="personas-tbody">
+                <tr><td colspan="6" class="px-4 py-6 text-sm text-gray-400">Cargando...</td></tr>
+              </tbody>
+            </table>
+            <div id="personas-pagination" class="hidden flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50">
+              <span id="personas-page-info" class="text-xs text-gray-500"></span>
+              <div class="flex gap-2">
+                <button onclick="changePersonasPage(-1)" id="personas-prev"
+                  class="px-3 py-1.5 rounded-lg border border-gray-300 text-xs text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition">
+                  ‹ Anterior
+                </button>
+                <button onclick="changePersonasPage(1)" id="personas-next"
+                  class="px-3 py-1.5 rounded-lg border border-gray-300 text-xs text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed transition">
+                  Siguiente ›
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -226,23 +267,28 @@
     const PAGE_SIZE = 10;
 
     // ── Estado global ──────────────────────────────────────────────
-    let currentTab         = 'comunidades';
-    let currentUser        = null;
-    let pendingAction      = null;
+    let currentTab          = 'comunidades';
+    let currentUser         = null;
+    let pendingAction       = null;
 
-    // Eventos
-    let allEventos         = [];
-    let filteredEventos    = [];
-    let sortCol            = 'nombre';
-    let sortDir            = 'asc';
-    let eventoPage         = 1;
-    let selectedEventoId   = null;
+    // Eventos (paginación client-side)
+    let allEventos          = [];
+    let filteredEventos     = [];
+    let sortCol             = 'nombre';
+    let sortDir             = 'asc';
+    let eventoPage          = 1;
+    let selectedEventoId    = null;
     let selectedEventoNombre = '';
 
-    // Inscriptos
-    let allInscriptos      = [];
-    let filteredInscriptos = [];
-    let inscriptosPage     = 1;
+    // Inscriptos (paginación client-side)
+    let allInscriptos       = [];
+    let filteredInscriptos  = [];
+    let inscriptosPage      = 1;
+
+    // Personas (paginación server-side)
+    let personasPage        = 1;
+    let personasHasMore     = false;
+    let personasDebounce    = null;
 
     // ── Init ───────────────────────────────────────────────────────
     async function init() {
@@ -271,27 +317,34 @@
       clearError();
       document.getElementById('section-comunidades').classList.toggle('hidden', tab !== 'comunidades');
       document.getElementById('section-nexo').classList.toggle('hidden', tab !== 'nexo');
-      if (tab === 'comunidades') loadEventos();
+      if (tab === 'comunidades') showSubview('eventos');
     }
 
-    // ── Vista: volver a eventos ────────────────────────────────────
-    function volverAEventos() {
-      document.getElementById('view-inscriptos').classList.add('hidden');
-      document.getElementById('view-eventos').classList.remove('hidden');
+    // ── Sub-nav Comunidades ────────────────────────────────────────
+    function showSubview(view) {
       clearError();
+      const active   = 'border-indigo-600 bg-indigo-600 text-white';
+      const inactive = 'border-gray-300 text-gray-600 hover:bg-gray-50';
+      ['eventos', 'personas'].forEach((v) => {
+        document.getElementById(`subnav-${v}`).className =
+          `px-4 py-1.5 rounded-lg text-sm font-medium transition border ${v === view ? active : inactive}`;
+      });
+      document.getElementById('comunidades-subnav').classList.remove('hidden');
+      document.getElementById('view-eventos').classList.toggle('hidden', view !== 'eventos');
+      document.getElementById('view-personas').classList.toggle('hidden', view !== 'personas');
+      document.getElementById('view-inscriptos').classList.add('hidden');
+
+      if (view === 'eventos') loadEventos();
+      if (view === 'personas') loadPersonas(1);
     }
 
-    // ── Comunidades: carga y tabla de eventos ──────────────────────
+    // ── EVENTOS: carga y tabla ─────────────────────────────────────
     async function loadEventos() {
-      document.getElementById('view-eventos').classList.remove('hidden');
-      document.getElementById('view-inscriptos').classList.add('hidden');
       document.getElementById('eventos-tbody').innerHTML =
         '<tr><td colspan="2" class="px-4 py-6 text-sm text-gray-400">Cargando eventos...</td></tr>';
       document.getElementById('eventos-pagination').classList.add('hidden');
       document.getElementById('eventos-filter').value = '';
-      allEventos = [];
-      filteredEventos = [];
-      eventoPage = 1;
+      allEventos = []; filteredEventos = []; eventoPage = 1;
       try {
         const res  = await fetch('/api/comunidades/eventos');
         const data = await res.json();
@@ -308,8 +361,7 @@
 
     function sortEventos(lista) {
       return [...lista].sort((a, b) => {
-        let va = a[sortCol] ?? '';
-        let vb = b[sortCol] ?? '';
+        let va = a[sortCol] ?? '', vb = b[sortCol] ?? '';
         if (sortCol === 'fechaInicio') {
           va = va ? new Date(va).getTime() : 0;
           vb = vb ? new Date(vb).getTime() : 0;
@@ -323,18 +375,15 @@
 
     function sortTabla(col) {
       sortDir = sortCol === col ? (sortDir === 'asc' ? 'desc' : 'asc') : 'asc';
-      sortCol = col;
-      eventoPage = 1;
+      sortCol = col; eventoPage = 1;
       const q = document.getElementById('eventos-filter').value.toLowerCase().trim();
-      const base = q ? allEventos.filter((e) => e.nombre.toLowerCase().includes(q)) : allEventos;
-      filteredEventos = sortEventos(base);
+      filteredEventos = sortEventos(q ? allEventos.filter((e) => e.nombre.toLowerCase().includes(q)) : allEventos);
       renderTablaEventos();
     }
 
     function filtrarEventos() {
       const q = document.getElementById('eventos-filter').value.toLowerCase().trim();
-      const base = q ? allEventos.filter((e) => e.nombre.toLowerCase().includes(q)) : allEventos;
-      filteredEventos = sortEventos(base);
+      filteredEventos = sortEventos(q ? allEventos.filter((e) => e.nombre.toLowerCase().includes(q)) : allEventos);
       eventoPage = 1;
       renderTablaEventos();
     }
@@ -346,34 +395,27 @@
     }
 
     function renderTablaEventos() {
-      // Íconos de sort
       ['nombre', 'fechaInicio'].forEach((col) => {
         const el = document.getElementById(`sort-icon-${col}`);
         if (col !== sortCol) { el.textContent = '↕'; el.className = 'text-gray-300'; return; }
         el.textContent = sortDir === 'asc' ? '↑' : '↓';
         el.className = 'text-indigo-500';
       });
-
       const tbody = document.getElementById('eventos-tbody');
       const total = filteredEventos.length;
-
       if (total === 0) {
         tbody.innerHTML = '<tr><td colspan="2" class="px-4 py-6 text-sm text-gray-400">Sin eventos.</td></tr>';
         document.getElementById('eventos-pagination').classList.add('hidden');
         return;
       }
-
       const totalPages = Math.ceil(total / PAGE_SIZE);
       const slice = filteredEventos.slice((eventoPage - 1) * PAGE_SIZE, eventoPage * PAGE_SIZE);
-
       tbody.innerHTML = slice.map((e) => `
         <tr onclick="selectEvento(${jsStr(e.id)}, ${jsStr(e.nombre)})"
           class="cursor-pointer border-b border-gray-100 last:border-0 hover:bg-indigo-50 transition">
           <td class="px-4 py-3 font-medium text-gray-800">${escHtml(e.nombre)}</td>
           <td class="px-4 py-3 text-gray-500">${fmtFecha(e.fechaInicio)}</td>
         </tr>`).join('');
-
-      // Paginación
       const pag = document.getElementById('eventos-pagination');
       pag.classList.remove('hidden');
       document.getElementById('eventos-page-info').textContent =
@@ -382,34 +424,38 @@
       document.getElementById('eventos-next').disabled = eventoPage === totalPages;
     }
 
-    // ── Comunidades: inscriptos ────────────────────────────────────
+    // ── INSCRIPTOS ─────────────────────────────────────────────────
     async function selectEvento(eventoId, nombre) {
-      selectedEventoId    = eventoId;
+      selectedEventoId     = eventoId;
       selectedEventoNombre = nombre;
-
+      document.getElementById('comunidades-subnav').classList.add('hidden');
       document.getElementById('view-eventos').classList.add('hidden');
+      document.getElementById('view-personas').classList.add('hidden');
       document.getElementById('view-inscriptos').classList.remove('hidden');
       document.getElementById('inscriptos-evento-nombre').textContent = nombre;
       document.getElementById('inscriptos-filter').value = '';
       document.getElementById('inscriptos-tbody').innerHTML =
         '<tr><td colspan="3" class="px-4 py-6 text-sm text-gray-400">Cargando inscriptos...</td></tr>';
       document.getElementById('inscriptos-pagination').classList.add('hidden');
-      allInscriptos = [];
-      filteredInscriptos = [];
-      inscriptosPage = 1;
+      allInscriptos = []; filteredInscriptos = []; inscriptosPage = 1;
       clearError();
-
       try {
         const res  = await fetch(`/api/comunidades/eventos/${eventoId}/inscriptos`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Error al cargar inscriptos');
-        allInscriptos = data;
-        filteredInscriptos = data;
+        allInscriptos = data; filteredInscriptos = data;
         renderTablaInscriptos();
       } catch (err) {
         showError(err.message);
         document.getElementById('inscriptos-tbody').innerHTML = '';
       }
+    }
+
+    function volverAEventos() {
+      document.getElementById('view-inscriptos').classList.add('hidden');
+      document.getElementById('view-eventos').classList.remove('hidden');
+      document.getElementById('comunidades-subnav').classList.remove('hidden');
+      clearError();
     }
 
     function filtrarInscriptos() {
@@ -430,10 +476,9 @@
     }
 
     function renderTablaInscriptos() {
-      const tbody = document.getElementById('inscriptos-tbody');
-      const total = filteredInscriptos.length;
+      const tbody    = document.getElementById('inscriptos-tbody');
+      const total    = filteredInscriptos.length;
       const totalAll = allInscriptos.length;
-
       if (totalAll === 0) {
         tbody.innerHTML = '<tr><td colspan="3" class="px-4 py-6 text-sm text-gray-400">Este evento no tiene inscriptos.</td></tr>';
         document.getElementById('inscriptos-pagination').classList.add('hidden');
@@ -444,10 +489,8 @@
         document.getElementById('inscriptos-pagination').classList.add('hidden');
         return;
       }
-
       const totalPages = Math.ceil(total / PAGE_SIZE);
       const slice = filteredInscriptos.slice((inscriptosPage - 1) * PAGE_SIZE, inscriptosPage * PAGE_SIZE);
-
       tbody.innerHTML = slice.map((u) => {
         const nombre = escHtml(`${u.nombre} ${u.apellido}`.trim() || '—');
         const email  = escHtml(u.email || '—');
@@ -469,8 +512,6 @@
             </td>
           </tr>`;
       }).join('');
-
-      // Paginación
       const pag = document.getElementById('inscriptos-pagination');
       pag.classList.remove('hidden');
       const info = total !== totalAll
@@ -484,6 +525,67 @@
     function openEditFromInscripto(userId, nombre, apellido, email, telefono) {
       currentUser = { id: userId, nombre, apellido, email, telefono };
       openEditModal();
+    }
+
+    // ── PERSONAS: paginación server-side ──────────────────────────
+    function onPersonasSearch() {
+      clearTimeout(personasDebounce);
+      personasDebounce = setTimeout(() => loadPersonas(1), 400);
+    }
+
+    async function loadPersonas(page) {
+      personasPage = page;
+      const q = document.getElementById('personas-search').value.trim();
+      document.getElementById('personas-tbody').innerHTML =
+        '<tr><td colspan="6" class="px-4 py-6 text-sm text-gray-400">Cargando...</td></tr>';
+      document.getElementById('personas-pagination').classList.add('hidden');
+      clearError();
+      try {
+        const params = new URLSearchParams({ page });
+        if (q) params.set('q', q);
+        const res  = await fetch(`/api/comunidades/personas?${params}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Error al cargar personas');
+        personasHasMore = data.hasMore;
+        renderTablaPersonas(data.data);
+      } catch (err) {
+        showError(err.message);
+        document.getElementById('personas-tbody').innerHTML = '';
+      }
+    }
+
+    function changePersonasPage(dir) {
+      const next = personasPage + dir;
+      if (next < 1) return;
+      if (dir === 1 && !personasHasMore) return;
+      loadPersonas(next);
+    }
+
+    function renderTablaPersonas(lista) {
+      const tbody = document.getElementById('personas-tbody');
+      if (!lista.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-6 text-sm text-gray-400">Sin resultados.</td></tr>';
+        document.getElementById('personas-pagination').classList.add('hidden');
+        return;
+      }
+      tbody.innerHTML = lista.map((u) => `
+        <tr class="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition">
+          <td class="px-4 py-3 text-gray-800">${escHtml(u.nombre || '—')}</td>
+          <td class="px-4 py-3 text-gray-800">${escHtml(u.apellido || '—')}</td>
+          <td class="px-4 py-3 text-gray-500">${escHtml(u.email || '—')}</td>
+          <td class="px-4 py-3 text-gray-600">${escHtml(u.empresa || '—')}</td>
+          <td class="px-4 py-3 text-gray-500 whitespace-nowrap">${escHtml(u.nit || '—')}</td>
+          <td class="px-4 py-3 text-gray-500 max-w-xs">
+            <span title="${escHtml(u.perfilEmpresarial)}" class="block truncate">
+              ${escHtml(u.perfilEmpresarial || '—')}
+            </span>
+          </td>
+        </tr>`).join('');
+      const pag = document.getElementById('personas-pagination');
+      pag.classList.remove('hidden');
+      document.getElementById('personas-page-info').textContent = `Página ${personasPage}`;
+      document.getElementById('personas-prev').disabled = personasPage === 1;
+      document.getElementById('personas-next').disabled = !personasHasMore;
     }
 
     // ── Modal confirmación ─────────────────────────────────────────
@@ -505,19 +607,15 @@
       if (!pendingAction) return;
       const { accion, usuarioId, relacionId } = pendingAction;
       closeModal('modal-confirm');
-
       let url;
       if (accion === 'eliminar_inscripto') url = `/api/comunidades/usuarios/${usuarioId}/evento/${relacionId}`;
       if (accion === 'eliminar_espacio')   url = `/api/nexo/usuarios/${usuarioId}/espacio/${relacionId}`;
       if (accion === 'eliminar_evento')    url = `/api/${currentTab}/usuarios/${usuarioId}/evento/${relacionId}`;
-
       try {
         const res  = await fetch(url, { method: 'DELETE' });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Error al ejecutar la acción');
-        if (accion === 'eliminar_inscripto') {
-          await selectEvento(selectedEventoId, selectedEventoNombre);
-        }
+        if (accion === 'eliminar_inscripto') await selectEvento(selectedEventoId, selectedEventoNombre);
       } catch (err) {
         showError(err.message);
       } finally {
@@ -558,7 +656,7 @@
       }
     }
 
-    // ── Nexo: búsqueda ────────────────────────────────────────────
+    // ── Nexo ───────────────────────────────────────────────────────
     async function buscar() {
       const q = document.getElementById('search-input').value.trim();
       if (!q) return;
@@ -569,26 +667,18 @@
         const res  = await fetch(`/api/${currentTab}/buscar?q=${encodeURIComponent(q)}`);
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Error al buscar');
-        renderResults(data);
+        const list = document.getElementById('results-list');
+        if (!data.length) { list.innerHTML = '<p class="text-sm text-gray-400">Sin resultados.</p>'; return; }
+        list.innerHTML = data.map((u) => `
+          <button onclick="loadUser('${u.id}')"
+            class="w-full text-left bg-white rounded-xl border border-gray-200 px-4 py-3 hover:border-indigo-400 transition">
+            <p class="font-medium text-gray-800 text-sm">${escHtml(u.nombre || '—')}</p>
+            <p class="text-xs text-gray-500">${escHtml(u.email || '—')}</p>
+          </button>`).join('');
       } catch (err) {
         showError(err.message);
         document.getElementById('results-list').innerHTML = '';
       }
-    }
-
-    function renderResults(usuarios) {
-      const list = document.getElementById('results-list');
-      if (!usuarios.length) {
-        list.innerHTML = '<p class="text-sm text-gray-400">Sin resultados.</p>';
-        return;
-      }
-      list.innerHTML = usuarios.map((u) => `
-        <button onclick="loadUser('${u.id}')"
-          class="w-full text-left bg-white rounded-xl border border-gray-200 px-4 py-3 hover:border-indigo-400 hover:shadow-sm transition">
-          <p class="font-medium text-gray-800 text-sm">${escHtml(u.nombre || '—')}</p>
-          <p class="text-xs text-gray-500">${escHtml(u.email || '—')}</p>
-        </button>
-      `).join('');
     }
 
     async function loadUser(id) {
@@ -608,9 +698,7 @@
     }
 
     // ── Helpers ────────────────────────────────────────────────────
-    function closeModal(id) {
-      document.getElementById(id).classList.add('hidden');
-    }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
     function showError(msg) {
       const el = document.getElementById('error-banner');
@@ -618,9 +706,7 @@
       el.classList.remove('hidden');
     }
 
-    function clearError() {
-      document.getElementById('error-banner').classList.add('hidden');
-    }
+    function clearError() { document.getElementById('error-banner').classList.add('hidden'); }
 
     function fmtFecha(iso) {
       if (!iso) return '—';
@@ -641,7 +727,6 @@
         .replace(/"/g, '&quot;');
     }
 
-    // ── Arrancar ───────────────────────────────────────────────────
     init();
   </script>
 </body>
